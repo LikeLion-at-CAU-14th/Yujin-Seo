@@ -42,6 +42,8 @@ Likelion 14th Backend
 
 ![Contact](https://capsule-render.vercel.app/api?type=rect&height=80&fontAlignY=60&text=Contact&color=gradient)
 
-email | seoyjsyj0117@gmail.com  
+email | seoyjsyj0117@gmail.com 
+
 velog | https://velog.io/@dalsudang 
-  insta | https://www.instagram.com/@dalsudang
+
+insta | https://www.instagram.com/@dalsudang  
