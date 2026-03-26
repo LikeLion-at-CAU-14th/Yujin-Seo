@@ -56,6 +56,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [  
     'posts',
+    'accounts',
 
 ]
 
@@ -142,3 +143,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+AUTH_USER_MODEL = 'accounts.User'
