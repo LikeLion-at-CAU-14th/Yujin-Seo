@@ -1,10 +1,9 @@
+# posts/views.py
 from django.shortcuts import render
-from django.http import JsonResponse # 추가 
-from django.shortcuts import get_object_or_404 # 추가
+from django.http import JsonResponse 
+from django.shortcuts import get_object_or_404 
 from django.views.decorators.http import require_http_methods
 from .models import *
-
-# Create your views here.
 
 def hello_world(request):
     if request.method == "GET":
@@ -16,9 +15,9 @@ def hello_world(request):
 def index(request):
     return render(request, 'index.html')
 
-# Create your views here.
+# 게시글 상세 정보 조회
 @require_http_methods(["GET"])
-def get_post_detail(reqeuest, id):
+def get_post_detail(request, id):
     post = get_object_or_404(Post, pk=id)
     post_detail_json = {
         "id" : post.id,
