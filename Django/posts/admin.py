@@ -74,4 +74,5 @@ class PostAdmin(admin.ModelAdmin):
 
 # admin 등록
 admin.site.register(Post, PostAdmin)
+admin.site.register(Comment)
 admin.site.register(Category, CategoryAdmin)
