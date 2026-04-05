@@ -80,6 +80,7 @@ import json
 @require_http_methods(["POST", "GET"])   #함수 데코레이터, 특정 http method 만 허용합니다
 def post_list(request):
 
+    # 게시글 생성(POST)
     if request.method == "POST":
 
         # request.body의 byte -> 문자열 -> python 딕셔너리
@@ -113,30 +114,39 @@ def post_list(request):
             'message' : '게시글 생성 성공',
             'data' : new_post_json
         })
-    
-        # 게시글 전체 조회
-    if request.method == "GET":
-        post_all = Post.objects.all()
 
-        # 각 데이터를 Json 형식으로 변환하여 리스트에 저장 (여러개의 게시글 내용을 담을 거라 리스트를 이용합니다)
+    # 게시글 리스트 조회(GET)
+    if request.method == "GET":
+        category_id = request.GET.get('category')
+
+        posts = Post.objects.all()
+
+        # 카테고리 필터
+        if category_id:
+            posts = posts.filter(categories__id=category_id)
+
+        # 최신순 정렬
+        posts = posts.order_by('-created_at')
+
         post_all_json = []
 
-        for post in post_all:
+        for post in posts: 
             post_json = {
-                "id" : post.id,
-                "title" : post.title,
-                "content" : post.content,
-                "status" : post.status,
-                "writer" : post.writer.username
+                "id": post.id,
+                "title": post.title,
+                "content": post.content,
+                "status": post.status,
+                "writer": post.writer.username
             }
             post_all_json.append(post_json)
 
         return JsonResponse({
-            'status' : 200,
-            'message' : '게시글 목록 조회 성공',
-            'data' : post_all_json
+            'status': 200,
+            'message': '게시글 목록 조회 성공',
+            'data': post_all_json
         })
 
+# 특정 게시글의 댓글 리스트 조회
 def comment_list(request, post_id):
     comments = Comment.objects.filter(post_id=post_id)
 
