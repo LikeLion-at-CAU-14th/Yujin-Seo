@@ -136,3 +136,21 @@ def post_list(request):
             'message' : '게시글 목록 조회 성공',
             'data' : post_all_json
         })
+
+def comment_list(request, post_id):
+    comments = Comment.objects.filter(post_id=post_id)
+
+    data = []
+    for comment in comments:
+        data.append({
+            "id": comment.id,
+            "content": comment.content,
+            "writer": comment.writer.username if comment.writer else None,
+            "created_at": comment.created_at
+        })
+
+    return JsonResponse({
+        "status": 200,
+        "message": "댓글 조회 성공",
+        "data": data
+    })
