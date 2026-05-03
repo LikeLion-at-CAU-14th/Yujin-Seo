@@ -167,7 +167,8 @@
 
 ### DRF 관련 import - APIView 사용
 
-from .serializers import PostSerializer
+from .serializers import PostSerializer, CommentSerializer
+from .models import Post, Comment
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -212,16 +213,25 @@ class PostDetail(APIView):
             },
             status=status.HTTP_200_OK
         )
-    
-	    # post = get_object_or_404(Post, id=post_id)
-        # post.delete()
-        
 
-	    # post.delete()
-	    # return Response(
-	    #     {
-	    #         "message": "게시글이 성공적으로 삭제되었습니다.",
-	    #         "post_id": post_id
-	    #     },
-	    #     status=status.HTTP_200_OK
-	    # )
+class CommentList(APIView):
+    def get(self, request, post_id): # post_id를 URL에서 받아와서 해당 게시글의 댓글 리스트를 조회하는 로직
+        comments = Comment.objects.filter(post_id=post_id)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, post_id): # post_id를 URL에서 받아와서 해당 게시글에 댓글을 생성하는 로직
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(post_id=post_id) 
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentDetail(APIView):
+    def delete(self, request, comment_id): # comment_id를 URL에서 받아와서 해당 댓글을 삭제하는 로직
+        comment = get_object_or_404(Comment, id=comment_id)
+        comment.delete()
+        return Response(
+            {"message": "댓글이 성공적으로 삭제되었습니다."},
+            status=status.HTTP_200_OK
+        )   
