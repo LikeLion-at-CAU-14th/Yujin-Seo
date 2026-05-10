@@ -176,13 +176,40 @@ from rest_framework import status
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly # jwt 세션
+from datetime import datetime
+from rest_framework import permissions
+
+# 권한1: 통금 시간 체크 (오후 10시 ~ 오전 7시)
+class IsNotCurfewTime(permissions.BasePermission):
+
+    message = "현재 시간은 통금 시간입니다. 접근이 거부되었습니다."
+
+    def has_permission(self, request, view):
+        current_hour = datetime.now().hour
+        # 22시(밤 10시)부터 07시 전까지는 거부
+        if current_hour >= 22 or current_hour < 7:
+            return False
+        return True
+
+# 권한2: 작성자 본인 확인 (수정/삭제 시)
+class IsOwnerOrReadOnly(permissions.BasePermission):
+
+    message = "게시글의 작성자만 수정/삭제할 수 있습니다."
+
+    def has_object_permission(self, request, view, obj):
+        # 조회(GET 등)는 누구나 가능
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # 수정/삭제는 게시글의 유저(obj.user)와 요청자(request.user)가 같아야 함
+        return obj.writer == request.user
 
 class PostList(APIView):
+    permission_classes = [IsNotCurfewTime]
 
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(writer=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -192,15 +219,21 @@ class PostList(APIView):
         return Response(serializer.data)
     
 class PostDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsNotCurfewTime, IsOwnerOrReadOnly]
 
     def get(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
         serializer = PostSerializer(post)
         return Response(serializer.data)
     
     def put(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+        
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid(): # update이니까 유효성 검사 필요
             serializer.save()
@@ -209,6 +242,9 @@ class PostDetail(APIView):
     
     def delete(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
         post.delete()
         return Response(
             {
@@ -219,8 +255,10 @@ class PostDetail(APIView):
         )
 
 class CommentList(APIView):
+    permission_classes = [IsNotCurfewTime]
+
     def get(self, request, post_id): # post_id를 URL에서 받아와서 해당 게시글의 댓글 리스트를 조회하는 로직
-        comments = Comment.objects.f, cilter(post_id=post_id)
+        comments = Comment.objects.filter(post_id=post_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
@@ -232,8 +270,13 @@ class CommentList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CommentDetail(APIView):
+    permission_classes = [IsNotCurfewTime, IsOwnerOrReadOnly]
+
     def delete(self, request, post_id, comment_id): # comment_id를 URL에서 받아와서 해당 댓글을 삭제하는 로직
         comment = get_object_or_404(Comment, id=comment_id)
+
+        self.check_object_permissions(request, comment)
+
         comment.delete()
         return Response(
             {"message": "댓글이 성공적으로 삭제되었습니다.",
