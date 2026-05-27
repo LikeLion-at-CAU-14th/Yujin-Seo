@@ -39,7 +39,7 @@ class GuestbookDetailAPIView(APIView):
     def get(self, request, pk):
         guestbook = self.get_object(pk)
         if guestbook is None:
-            return Response({"message": "해당 방명록을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "해당 방명록을 찾을 수 없습니다. 다시 시도해주세요."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = GuestbookSerializer(guestbook)
         return Response(serializer.data)
@@ -48,7 +48,7 @@ class GuestbookDetailAPIView(APIView):
     def delete(self, request, pk):
         guestbook = self.get_object(pk)
         if guestbook is None:
-            return Response({"message": "해당 방명록을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "해당 방명록을 찾을 수 없습니다. 다시 시도해주세요."}, status=status.HTTP_404_NOT_FOUND)
         
         input_password = request.data.get('password')
         
