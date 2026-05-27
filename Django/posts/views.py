@@ -178,33 +178,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly # jwt 세션
 from datetime import datetime
 from rest_framework import permissions
-
-# 권한1: 통금 시간 체크 (오후 10시 ~ 오전 7시)
-class IsNotCurfewTime(permissions.BasePermission):
-
-    message = "현재 시간은 통금 시간입니다. 접근이 거부되었습니다."
-
-    def has_permission(self, request, view):
-        current_hour = datetime.now().hour
-        # 22시(밤 10시)부터 07시 전까지는 거부
-        if current_hour >= 22 or current_hour < 7:
-            return False
-        return True
-
-# 권한2: 작성자 본인 확인 (수정/삭제 시)
-class IsOwnerOrReadOnly(permissions.BasePermission):
-
-    message = "게시글의 작성자만 수정/삭제할 수 있습니다."
-
-    def has_object_permission(self, request, view, obj):
-        # 조회(GET 등)는 누구나 가능
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        # 수정/삭제는 게시글의 유저(obj.user)와 요청자(request.user)가 같아야 함
-        return obj.writer == request.user
+from config.permissions import IsNotCurfewTime, IsOwnerOrReadOnly
 
 class PostList(APIView):
-    permission_classes = [IsNotCurfewTime]
+    permission_classes = [IsNotCurfewTime, IsAuthenticatedOrReadOnly]
 
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
