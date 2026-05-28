@@ -1,0 +1,18 @@
+asgiref==3.11.1
+certifi==2026.5.20
+cffi==2.0.0
+charset-normalizer==3.4.7
+cryptography==48.0.0
+Django==6.0.3
+django-allauth==65.17.0
+django-cors-headers==4.9.0
+djangorestframework==3.17.1
+djangorestframework_simplejwt==5.5.1
+idna==3.16
+-e git+https://github.com/LikeLion-at-CAU-14th/Yujin-Seo.git@433769f1e2c8e5230ca7260e8e0ac905256c156f#egg=likelion14th&subdirectory=django
+pycparser==3.0
+PyJWT==2.12.1
+requests==2.34.2
+sqlparse==0.5.5
+tzdata==2025.3
+urllib3==2.7.0
