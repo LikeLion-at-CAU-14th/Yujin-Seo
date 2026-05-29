@@ -181,6 +181,7 @@ def google_callback(request):
 # 1. 카카오 REST API 키와 콜백 URI를 secrets.json에서 불러오기
 KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY")
 KAKAO_CALLBACK_URI = get_secret("KAKAO_CALLBACK_URI")
+KAKAO_CLIENT_SECRET = get_secret("KAKAO_CLIENT_SECRET")
 
 # 2. 사용자를 카카오 로그인 창으로 리디렉션하는 함수
 def kakao_login(request):
@@ -196,7 +197,7 @@ def kakao_callback(request):
     if code is None:
         return JsonResponse({"error": "Authorization code error."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # [단계 1] 인가 코드로 카카오에게 access token 요청
+# [단계 1] 인가 코드로 카카오에게 access token 요청
     token_req = requests.post(
         "https://kauth.kakao.com/oauth/token",
         headers={"Content-type": "application/x-www-form-urlencoded;charset=utf-8"},
@@ -205,12 +206,17 @@ def kakao_callback(request):
             "client_id": KAKAO_REST_API_KEY,
             "redirect_uri": KAKAO_CALLBACK_URI,
             "code": code,
+            
+            # 💡 카카오 보안 인증을 통과하기 위해 시크릿 키를 추가합니다!
+            "client_secret": KAKAO_CLIENT_SECRET, 
         },
         timeout=10,
     )
+
     token_req_json = token_req.json()
     kakao_access_token = token_req_json.get("access_token")
 
+    # 💡 [여기 추가!] 혹시라도 카카오 토큰 발급에 실패했을 때를 대비한 안전장치입니다.
     if token_req.status_code != 200 or kakao_access_token is None:
         return JsonResponse(
             {"status": 400, "message": "Failed to get access token", "detail": token_req_json},
