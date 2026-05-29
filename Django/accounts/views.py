@@ -175,3 +175,98 @@ def google_callback(request):
         res.set_cookie("access-token", access_token, httponly=True)
         res.set_cookie("refresh-token", refresh_token, httponly=True)
         return res
+
+# 카카오 소셜로그인 
+
+# 1. 카카오 REST API 키와 콜백 URI를 secrets.json에서 불러오기
+KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY")
+KAKAO_CALLBACK_URI = get_secret("KAKAO_CALLBACK_URI")
+
+# 2. 사용자를 카카오 로그인 창으로 리디렉션하는 함수
+def kakao_login(request):
+    kakao_auth_url = "https://kauth.kakao.com/oauth/authorize"
+    return redirect(
+        f"{kakao_auth_url}?client_id={KAKAO_REST_API_KEY}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code"
+    )
+
+# 3. 카카오 인증 완료 후 인가 코드를 받아 처리하는 콜백 함수
+def kakao_callback(request):
+    code = request.GET.get("code")
+
+    if code is None:
+        return JsonResponse({"error": "Authorization code error."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # [단계 1] 인가 코드로 카카오에게 access token 요청
+    token_req = requests.post(
+        "https://kauth.kakao.com/oauth/token",
+        headers={"Content-type": "application/x-www-form-urlencoded;charset=utf-8"},
+        data={
+            "grant_type": "authorization_code",
+            "client_id": KAKAO_REST_API_KEY,
+            "redirect_uri": KAKAO_CALLBACK_URI,
+            "code": code,
+        },
+        timeout=10,
+    )
+    token_req_json = token_req.json()
+    kakao_access_token = token_req_json.get("access_token")
+
+    if token_req.status_code != 200 or kakao_access_token is None:
+        return JsonResponse(
+            {"status": 400, "message": "Failed to get access token", "detail": token_req_json},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # [단계 2] 발급받은 access token으로 카카오 유저 정보 요청
+    user_info_response = requests.get(
+        "https://kapi.kakao.com/v2/user/me",
+        headers={
+            "Authorization": f"Bearer {kakao_access_token}",
+            "Content-type": "application/x-www-form-urlencoded;charset=utf-8"
+        },
+        timeout=10,
+    )
+
+    if user_info_response.status_code != 200:
+        return JsonResponse(
+            {"status": 400, "message": "Failed to get user info"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user_info = user_info_response.json()
+    kakao_id = user_info.get("id")
+    
+    # 이메일 권한이 없으므로 고유 ID 기반 가짜 이메일 및 닉네임 추출
+    username = user_info.get("properties", {}).get("nickname", f"kakao_{kakao_id}")
+    email = f"{kakao_id}@kakao.com"
+
+    data = {
+        "username": username,
+        "email": email,
+    }
+
+    # [단계 3] 기존 구글 때 만들어둔 Serializer로 서비스 로그인/회원가입 처리
+    serializer = OAuthSerializer(data=data)
+    if serializer.is_valid(raise_exception=True):
+        user = serializer.validated_data["user"]
+        access_token = serializer.validated_data["access_token"]
+        refresh_token = serializer.validated_data["refresh_token"]
+
+        res = JsonResponse(
+            {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
+                },
+                "message": "kakao login success",
+                "token": {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+        res.set_cookie("access-token", access_token, httponly=True)
+        res.set_cookie("refresh-token", refresh_token, httponly=True)
+        return res 
