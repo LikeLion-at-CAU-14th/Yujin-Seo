@@ -1,7 +1,15 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 from .models import Guestbook
 
 class GuestbookSerializer(serializers.ModelSerializer):
+
+    # 5개 중 하나 선택할 수 있도록 필드에 제한 두기
+    character = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        default=1
+    )
+
     class Meta:
         model = Guestbook 
         
