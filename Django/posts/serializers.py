@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from .models import Post, Comment
+from config.custom_api_exceptions import PostConflictException
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -10,6 +11,12 @@ class PostSerializer(serializers.ModelSerializer):
     fields = "__all__"  # 모델에서 어떤 필드를 가져올지 >> 전체 필드
     read_only_fields = ['writer', 'categories']  
 
+  # 중복된 게시글 제목이 있다면 예외 발생
+  def validate(self, data):
+    if Post.objects.filter(title=data['title']).exists():
+      raise PostConflictException(detail=f"A post with title: '{data['title']}' already exists.")
+    
+    return data
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
