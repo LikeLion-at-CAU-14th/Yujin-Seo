@@ -18,4 +18,7 @@ urlpatterns = [
     # Comment 관련 URL (계층 구조 반영)
     path('<int:post_id>/comments/', CommentList.as_view()),          # 특정 게시글의 댓글 목록 및 생성
     path('<int:post_id>/comments/<int:comment_id>/', CommentDetail.as_view()), # 특정 게시글의 특정 댓글 상세/수정/삭제
+
+    # Image 관련 URL
+    path('upload/', ImageUploadView.as_view(), name='image-upload'),
     ]

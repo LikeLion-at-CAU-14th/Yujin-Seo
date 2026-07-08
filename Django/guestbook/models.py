@@ -1,6 +1,18 @@
 from django.db import models
 
 class Guestbook(models.Model):
+
+    CHARACTER_CHOICES = [
+            (1, 'Character 1'),
+            (2, 'Character 2'),
+            (3, 'Character 3'),
+            (4, 'Character 4'),
+            (5, 'Character 5'),
+        ]
+    
+    #0. 캐릭터 선택: 1~5 중 하나 선택
+    character = models.IntegerField(choices=CHARACTER_CHOICES, default=1)
+    
     # 1. 제목: 글자 수 제한(100자)
     title = models.CharField(max_length=100)
 
@@ -23,3 +35,4 @@ class Guestbook(models.Model):
     # 관리자 페이지나 터미널에서 글 제목이 한눈에 보이게
     def __str__(self):
         return self.title
+    
