@@ -252,7 +252,7 @@ class PostList(APIView):
         responses={201: PostSerializer, 400: "잘못된 요청"},
     )
     def post(self, request, format=None):
-        serializer = PostSerializer(data=request.data)
+        serializer = PostSerializer(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save(writer=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

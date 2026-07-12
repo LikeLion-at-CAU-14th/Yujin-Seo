@@ -17,6 +17,8 @@ def _create_unified_response(response):
         'error': {
             'code': error_detail.get('code', 'DRF-API-ERROR'),
             'message': error_detail.get('message', 'An error occurred.'),
+            'errors': error_detail.get('errors', []),
+            'field_details': error_detail.get('field_details', {}),
             'status_code': response.status_code,
         }
     }
