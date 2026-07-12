@@ -50,16 +50,16 @@ insta | https://www.instagram.com/@dalsudang
 
 ## 과제 1-1: 미들웨어로 Django 내장 예외(Http404) → JSON 응답 처리
 
-![과제 1-1 결과](assignment_img\1-1.png)
+![과제 1-1 결과](assignment_img/1-1.png)
 
 ## 과제 1-2: 커스텀 예외(BaseCustomException) 적용
 
-![과제 1-2 결과](assignment_img\1-2.png)
+![과제 1-2 결과](assignment_img/1-2.png)
 
 ## 과제 1-3: DRF custom_api_exception_handler 등록
 
-![과제 1-3 결과](assignment_img\1-3.png)
+![과제 1-3 결과](assignment_img/1-3.png)
 
 ## 과제 1-4: DRF 커스텀 예외 (PostConflictException)
 
-![과제 1-4 결과](assignment_img\1-4.png)
+![과제 1-4 결과](assignment_img/1-4.png)
