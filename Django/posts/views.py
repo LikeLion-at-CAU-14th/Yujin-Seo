@@ -2,7 +2,7 @@
 # from django.shortcuts import render
 # from django.http import JsonResponse 
 # from django.shortcuts import get_object_or_404 
-# from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods
 # from .models import *
 
 # def hello_world(request):
@@ -252,11 +252,11 @@ class PostList(APIView):
         responses={201: PostSerializer, 400: "잘못된 요청"},
     )
     def post(self, request, format=None):
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
+        serializer = PostSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
             serializer.save(writer=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="게시글 목록 조회",
@@ -356,3 +356,22 @@ class CommentDetail(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+from config.custom_exceptions import PostNotFoundException # 추가 - 커스텀 예외처리 실습용
+
+@require_http_methods(["GET"])
+def get_post_detail(reqeust, id):
+    try:
+        post = Post.objects.get(id=id)
+        post_detail_json = {
+            "id" : post.id,
+            "title" : post.title,
+            "content" : post.content,
+            "status" : post.status,
+            "user" : post.user.username
+        }
+        return JsonResponse({
+            "status" : 200,
+            "data": post_detail_json})
+    except Post.DoesNotExist:
+        raise PostNotFoundException
